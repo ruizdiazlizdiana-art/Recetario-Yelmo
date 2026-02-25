@@ -1,0 +1,8 @@
+{
+  "name": "Recetario Yelmo",
+  "short_name": "Recetario",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#FFF8DC",
+  "theme_color": "#8B4513"
+}
