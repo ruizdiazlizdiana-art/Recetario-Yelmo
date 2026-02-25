@@ -20,8 +20,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           
-      - name: Instalar Buildozer
-        run: pip install --user --upgrade buildozer cython virtualenv
+      - name: Instalar Buildozer y Cython Compatible
+        run: |
+          # ACA ESTA LA MAGIA: Le obligamos a usar Cython menor a 3.0
+          pip install --user "Cython<3.0" buildozer virtualenv
         
       - name: Cocinar el APK
         run: |
