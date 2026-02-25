@@ -3,103 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recetario Yelmo</title>
-    <link rel="manifest" href="manifest.json">
+    <title>Recetario Yelmo Familiar</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: 'Helvetica', sans-serif; background-color: #FFF8DC; color: #5C3A21; margin: 0; padding: 20px; }
-        h1 { text-align: center; color: #8B4513; }
-        .pantalla { display: none; }
-        .activa { display: block; }
-        .boton { display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: #F5DEB3; border: 2px solid #DEB887; border-radius: 10px; font-size: 16px; font-weight: bold; color: #5C3A21; cursor: pointer; text-align: left; }
-        .boton-accion { background-color: #98FB98; text-align: center; }
-        .boton-peligro { background-color: #FF9999; text-align: center; }
-        .boton-volver { background-color: #FFB6C1; text-align: center; }
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        textarea { height: 150px; }
-        .contenido-receta { background-color: white; padding: 15px; border-radius: 10px; min-height: 150px; white-space: pre-wrap; border: 1px solid #ccc; }
+        body { font-family: sans-serif; background: #fdf6e3; color: #5c3a21; padding: 20px; }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #d4a373; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        h1 { text-align: center; }
+        button { width: 100%; padding: 15px; background: #d4a373; border: none; border-radius: 5px; color: white; font-weight: bold; margin-top: 10px; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
-
-    <div id="pantalla-menu" class="pantalla activa">
-        <h1>🍞 Mis Recetas Yelmo 🍞</h1>
-        <div id="lista-recetas"></div>
-        <button class="boton boton-accion" onclick="mostrarPantalla('pantalla-agregar')">➕ Agregar Receta</button>
-    </div>
-
-    <div id="pantalla-ver" class="pantalla">
-        <h2 id="ver-titulo">Título</h2>
-        <div id="ver-contenido" class="contenido-receta">Contenido</div>
-        <br>
-        <button class="boton boton-volver" onclick="mostrarPantalla('pantalla-menu')">⬅ Volver</button>
-        <button class="boton boton-peligro" onclick="borrarRecetaActual()">❌ Borrar</button>
-    </div>
-
-    <div id="pantalla-agregar" class="pantalla">
-        <h2>Nueva Receta 📝</h2>
-        <input type="text" id="input-titulo" placeholder="Nombre del pan...">
-        <textarea id="input-contenido" placeholder="Ingredientes y pasos..."></textarea>
-        <button class="boton boton-accion" onclick="guardarReceta()">💾 Guardar</button>
-        <button class="boton boton-volver" onclick="mostrarPantalla('pantalla-menu')">Cancelar</button>
-    </div>
+    <h1>🍞 Recetario Familiar</h1>
+    <div id="lista">Cargando recetas...</div>
+    <hr>
+    <h3>Agregar Receta</h3>
+    <input type="text" id="titulo" placeholder="Nombre del pan">
+    <textarea id="texto" placeholder="Ingredientes y pasos"></textarea>
+    <button onclick="subir()">Guardar para todos</button>
 
     <script>
-        // Lógica de la app
-        let recetas = JSON.parse(localStorage.getItem('mis_recetas')) || {
-            "Pan Blanco Nube Real": "1 kg\n- Leche en polvo\n- Aceite\n- 12g levadura fresca\nPrograma: Básico",
-            "Pan Integral Malta": "1 kg\n- Leche\n- Malta y miel\n- 12g levadura fresca\nPrograma: Integral",
-            "Masa Pizza Integral": "Masa básica\nPrograma: Función 10 (Masa)"
+        {
+  apiKey: "AIzaSyAahdkog-13H7r0Fr84ZjtOkqJKmOkiZm8",
+  authDomain: "recetarioyelmo.firebaseapp.com",
+  projectId: "recetarioyelmo",
+  storageBucket: "recetarioyelmo.firebasestorage.app",
+  messagingSenderId: "1049804465138",
+  appId: "1:1049804465138:web:8b07fcb7241e18d44e416b",
+  measurementId: "G-H0JFWYTBY2"
+}
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            projectId: "TU_PROYECTO_ID",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_ID",
+            appId: "TU_APP_ID"
         };
-        let recetaActual = "";
 
-        function mostrarPantalla(id) {
-            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-            document.getElementById(id).classList.add('activa');
-            if(id === 'pantalla-menu') renderizarLista();
-        }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        function renderizarLista() {
-            const lista = document.getElementById('lista-recetas');
-            lista.innerHTML = '';
-            for (let titulo in recetas) {
-                let btn = document.createElement('button');
-                btn.className = 'boton';
-                btn.innerText = titulo;
-                btn.onclick = () => verReceta(titulo);
-                lista.appendChild(btn);
+        // Leer datos en tiempo real
+        db.collection("recetas").onSnapshot((snapshot) => {
+            const lista = document.getElementById("lista");
+            lista.innerHTML = "";
+            snapshot.forEach((doc) => {
+                const r = doc.data();
+                lista.innerHTML += `<div class="card"><b>${r.titulo}</b><p>${r.texto}</p></div>`;
+            });
+        });
+
+        // Subir datos
+        function subir() {
+            const t = document.getElementById("titulo").value;
+            const x = document.getElementById("texto").value;
+            if(t && x) {
+                db.collection("recetas").add({ titulo: t, texto: x });
+                document.getElementById("titulo").value = "";
+                document.getElementById("texto").value = "";
             }
         }
-
-        function verReceta(titulo) {
-            recetaActual = titulo;
-            document.getElementById('ver-titulo').innerText = titulo;
-            document.getElementById('ver-contenido').innerText = recetas[titulo];
-            mostrarPantalla('pantalla-ver');
-        }
-
-        function guardarReceta() {
-            const titulo = document.getElementById('input-titulo').value.trim();
-            const contenido = document.getElementById('input-contenido').value.trim();
-            if (titulo && contenido) {
-                recetas[titulo] = contenido;
-                localStorage.setItem('mis_recetas', JSON.stringify(recetas));
-                document.getElementById('input-titulo').value = '';
-                document.getElementById('input-contenido').value = '';
-                mostrarPantalla('pantalla-menu');
-            } else {
-                alert("Por favor, completá los dos campos.");
-            }
-        }
-
-        function borrarRecetaActual() {
-            if(confirm("¿Seguro que querés borrar: " + recetaActual + "?")) {
-                delete recetas[recetaActual];
-                localStorage.setItem('mis_recetas', JSON.stringify(recetas));
-                mostrarPantalla('pantalla-menu');
-            }
-        }
-
-        renderizarLista();
     </script>
 </body>
 </html>
