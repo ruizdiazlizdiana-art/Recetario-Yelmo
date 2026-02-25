@@ -26,7 +26,7 @@ jobs:
       - name: Cocinar el APK
         run: |
           export PATH=$PATH:~/.local/bin
-          buildozer -y android debug
+          yes | buildozer -y android debug
           
       - name: Guardar el APK final
         uses: actions/upload-artifact@v4
