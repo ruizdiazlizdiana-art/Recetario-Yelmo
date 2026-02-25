@@ -6,16 +6,29 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Build con Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+      
+      - name: Preparar Python
+        uses: actions/setup-python@v5
         with:
-          command: buildozer android debug
-          buildozer_version: master
-      - name: Subir APK
+          python-version: '3.11'
+          
+      - name: Instalar herramientas del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          
+      - name: Instalar Buildozer
+        run: pip install --user --upgrade buildozer cython virtualenv
+        
+      - name: Cocinar el APK
+        run: |
+          export PATH=$PATH:~/.local/bin
+          buildozer -y android debug
+          
+      - name: Guardar el APK final
         uses: actions/upload-artifact@v4
         with:
           name: MiApp_Recetario
