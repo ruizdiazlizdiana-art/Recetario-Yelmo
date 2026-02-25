@@ -1,47 +1,16 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recetario Yelmo Familiar</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #fdf6e3; color: #5c3a21; padding: 20px; }
-        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #d4a373; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
-        h1 { text-align: center; }
-        button { width: 100%; padding: 15px; background: #d4a373; border: none; border-radius: 5px; color: white; font-weight: bold; margin-top: 10px; }
-        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    </style>
-</head>
-<body>
-    <h1>🍞 Recetario Familiar</h1>
-    <div id="lista">Cargando recetas...</div>
-    <hr>
-    <h3>Agregar Receta</h3>
-    <input type="text" id="titulo" placeholder="Nombre del pan">
-    <textarea id="texto" placeholder="Ingredientes y pasos"></textarea>
-    <button onclick="subir()">Guardar para todos</button>
-
-    <script>
-        {
-  apiKey: "AIzaSyAahdkog-13H7r0Fr84ZjtOkqJKmOkiZm8",
-  authDomain: "recetarioyelmo.firebaseapp.com",
-  projectId: "recetarioyelmo",
-  storageBucket: "recetarioyelmo.firebasestorage.app",
-  messagingSenderId: "1049804465138",
-  appId: "1:1049804465138:web:8b07fcb7241e18d44e416b",
-  measurementId: "G-H0JFWYTBY2"
-}
+<script>
+        // Tus credenciales reales ya integradas:
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_PROYECTO.firebaseapp.com",
-            projectId: "TU_PROYECTO_ID",
-            storageBucket: "TU_PROYECTO.appspot.com",
-            messagingSenderId: "TU_ID",
-            appId: "TU_APP_ID"
+            apiKey: "AIzaSyAahdkog-13H7r0Fr84ZjtOkqJKmOkiZm8",
+            authDomain: "recetarioyelmo.firebaseapp.com",
+            projectId: "recetarioyelmo",
+            storageBucket: "recetarioyelmo.firebasestorage.app",
+            messagingSenderId: "1049804465138",
+            appId: "1:1049804465138:web:8b07fcb7241e18d44e416b",
+            measurementId: "G-H0JFWYTBY2"
         };
 
+        // Inicializamos Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -49,10 +18,16 @@
         db.collection("recetas").onSnapshot((snapshot) => {
             const lista = document.getElementById("lista");
             lista.innerHTML = "";
+            if (snapshot.empty) {
+                lista.innerHTML = "No hay recetas aún. ¡Sé la primera en agregar una!";
+            }
             snapshot.forEach((doc) => {
                 const r = doc.data();
                 lista.innerHTML += `<div class="card"><b>${r.titulo}</b><p>${r.texto}</p></div>`;
             });
+        }, (error) => {
+            console.error("Error al leer: ", error);
+            document.getElementById("lista").innerHTML = "Error de conexión. Revisá las Reglas en Firebase.";
         });
 
         // Subir datos
@@ -60,11 +35,21 @@
             const t = document.getElementById("titulo").value;
             const x = document.getElementById("texto").value;
             if(t && x) {
-                db.collection("recetas").add({ titulo: t, texto: x });
-                document.getElementById("titulo").value = "";
-                document.getElementById("texto").value = "";
+                db.collection("recetas").add({ 
+                    titulo: t, 
+                    texto: x,
+                    fecha: new Date() // Le sumamos fecha para que no se pierdan
+                })
+                .then(() => {
+                    document.getElementById("titulo").value = "";
+                    document.getElementById("texto").value = "";
+                    alert("¡Receta guardada para toda la familia!");
+                })
+                .catch((error) => {
+                    alert("Error al guardar: " + error.message);
+                });
+            } else {
+                alert("Reina, completá los dos campos por favor.");
             }
         }
     </script>
-</body>
-</html>
