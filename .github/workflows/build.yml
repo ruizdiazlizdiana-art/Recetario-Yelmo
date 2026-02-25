@@ -1,0 +1,22 @@
+name: Armar APK
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build con Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          command: buildozer android debug
+          buildozer_version: master
+      - name: Subir APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: MiApp_Recetario
+          path: bin/*.apk
